@@ -25,11 +25,18 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 function bindElements() {
-  ["deckTitle", "slideCount", "slidesForm", "addSlideBtn", "exportPdfBtn", "exportEspPdfBtn", "exportPptxBtn"].forEach(
-    (id) => {
-      els[id] = document.getElementById(id);
-    },
-  );
+  [
+    "deckTitle",
+    "slideCount",
+    "slidesForm",
+    "addSlideBtn",
+    "exportPdfBtn",
+    "exportEspPdfBtn",
+    "exportPptxBtn",
+    "exportAllBtn",
+  ].forEach((id) => {
+    els[id] = document.getElementById(id);
+  });
 }
 
 function bindEvents() {
@@ -41,6 +48,7 @@ function bindEvents() {
   els.exportPdfBtn.addEventListener("click", () => exportPdf("english"));
   els.exportEspPdfBtn.addEventListener("click", () => exportPdf("spanish"));
   els.exportPptxBtn.addEventListener("click", exportPptx);
+  els.exportAllBtn.addEventListener("click", exportAll);
 }
 
 function addSlide() {
@@ -190,6 +198,12 @@ async function exportPptx() {
   });
 
   await pptx.writeFile({ fileName: `${fileSafe(deckState.title)}.pptx` });
+}
+
+async function exportAll() {
+  await exportPdf("english");
+  await exportPdf("spanish");
+  await exportPptx();
 }
 
 async function exportPdf(language) {

@@ -27,3 +27,7 @@
 - Same format as the PDF export.
 - Spanish text replaces English text under each slide label/title.
 - English text is not included.
+
+### Export All
+
+- Triggers PDF, ESP PDF, and PPTX exports.
