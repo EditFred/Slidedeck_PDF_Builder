@@ -25,9 +25,11 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 function bindElements() {
-  ["deckTitle", "slideCount", "slidesForm", "addSlideBtn", "exportPdfBtn", "exportPptxBtn"].forEach((id) => {
-    els[id] = document.getElementById(id);
-  });
+  ["deckTitle", "slideCount", "slidesForm", "addSlideBtn", "exportPdfBtn", "exportEspPdfBtn", "exportPptxBtn"].forEach(
+    (id) => {
+      els[id] = document.getElementById(id);
+    },
+  );
 }
 
 function bindEvents() {
@@ -36,7 +38,8 @@ function bindEvents() {
     updateBoundTitlePlaceholders();
   });
   els.addSlideBtn.addEventListener("click", addSlide);
-  els.exportPdfBtn.addEventListener("click", exportPdf);
+  els.exportPdfBtn.addEventListener("click", () => exportPdf("english"));
+  els.exportEspPdfBtn.addEventListener("click", () => exportPdf("spanish"));
   els.exportPptxBtn.addEventListener("click", exportPptx);
 }
 
@@ -189,7 +192,7 @@ async function exportPptx() {
   await pptx.writeFile({ fileName: `${fileSafe(deckState.title)}.pptx` });
 }
 
-async function exportPdf() {
+async function exportPdf(language) {
   if (!window.jspdf) {
     alert("The PDF export tools are still loading. Try again in a moment.");
     return;
@@ -231,12 +234,13 @@ async function exportPdf() {
       pdf.setTextColor(...hexToRgb(BLACK));
       pdf.setFont("helvetica", "normal");
       pdf.setFontSize(12);
-      const lines = pdf.splitTextToSize(formatBulletsForExport(slide.english) || " ", maxWidth);
+      const lines = pdf.splitTextToSize(formatBulletsForExport(slide[language]) || " ", maxWidth);
       pdf.text(lines, marginX, y);
       y += lines.length * 0.2 + 0.38;
     });
 
-    pdf.save(`${fileSafe(deckState.title)}.pdf`);
+    const suffix = language === "spanish" ? "-ESP" : "";
+    pdf.save(`${fileSafe(deckState.title)}${suffix}.pdf`);
   } finally {
     setBusy(false);
   }

@@ -21,3 +21,9 @@
 - All user-provided PDF text is black.
 - Spanish text is not included.
 - Bullet and sub-bullet characters entered in English text are preserved.
+
+### ESP PDF
+
+- Same format as the PDF export.
+- Spanish text replaces English text under each slide label/title.
+- English text is not included.
