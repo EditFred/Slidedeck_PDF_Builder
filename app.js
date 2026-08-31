@@ -104,9 +104,11 @@ function render() {
     card.querySelector(".english-input").addEventListener("input", (event) => {
       updateSlide(slide.id, { english: event.target.value });
     });
+    card.querySelector(".english-input").addEventListener("keydown", handleTextAreaKeydown);
     card.querySelector(".spanish-input").addEventListener("input", (event) => {
       updateSlide(slide.id, { spanish: event.target.value });
     });
+    card.querySelector(".spanish-input").addEventListener("keydown", handleTextAreaKeydown);
 
     els.slidesForm.appendChild(card);
   });
@@ -156,7 +158,7 @@ async function exportPptx() {
       align: "center",
       valign: "mid",
     });
-    page.addText(slide.english || " ", {
+    page.addText(formatBulletsForExport(slide.english) || " ", {
       x: 0.72,
       y: 2.05,
       w: 5.8,
@@ -169,7 +171,7 @@ async function exportPptx() {
       breakLine: false,
       valign: "top",
     });
-    page.addText(slide.spanish || " ", {
+    page.addText(formatBulletsForExport(slide.spanish) || " ", {
       x: 6.82,
       y: 2.05,
       w: 5.8,
@@ -229,7 +231,7 @@ async function exportPdf() {
       pdf.setTextColor(...hexToRgb(BLACK));
       pdf.setFont("helvetica", "normal");
       pdf.setFontSize(12);
-      const lines = pdf.splitTextToSize(slide.english || " ", maxWidth);
+      const lines = pdf.splitTextToSize(formatBulletsForExport(slide.english) || " ", maxWidth);
       pdf.text(lines, marginX, y);
       y += lines.length * 0.2 + 0.38;
     });
@@ -242,6 +244,103 @@ async function exportPdf() {
 
 function hexToRgb(hex) {
   return [0, 2, 4].map((start) => parseInt(hex.slice(start, start + 2), 16));
+}
+
+function handleTextAreaKeydown(event) {
+  if (event.key === "*" && isAtLineStart(event.target)) {
+    event.preventDefault();
+    replaceSelection(event.target, "• ");
+    event.target.dispatchEvent(new Event("input", { bubbles: true }));
+    return;
+  }
+
+  if (event.key === "Tab" && isBulletLine(event.target)) {
+    event.preventDefault();
+    event.shiftKey ? outdentBulletLine(event.target) : indentBulletLine(event.target);
+    event.target.dispatchEvent(new Event("input", { bubbles: true }));
+    return;
+  }
+
+  if (event.key === "Enter" && isBulletLine(event.target)) {
+    handleBulletEnter(event);
+    return;
+  }
+
+  if (event.key === "Backspace" && isAtSubBulletContentStart(event.target)) {
+    event.preventDefault();
+    outdentBulletLine(event.target);
+    event.target.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+}
+
+function isAtLineStart(textarea) {
+  const lineStart = textarea.value.lastIndexOf("\n", textarea.selectionStart - 1) + 1;
+  return textarea.value.slice(lineStart, textarea.selectionStart).trim() === "";
+}
+
+function isBulletLine(textarea) {
+  return /^\s*[•◦]\s/.test(currentLine(textarea).text);
+}
+
+function isAtSubBulletContentStart(textarea) {
+  if (textarea.selectionStart !== textarea.selectionEnd) return false;
+  const line = currentLine(textarea);
+  const marker = line.text.match(/^\s*◦\s/);
+  return Boolean(marker) && textarea.selectionStart === line.start + marker[0].length;
+}
+
+function indentBulletLine(textarea) {
+  const line = currentLine(textarea);
+  const nextLine = line.text.replace(/^\s*[•◦]\s/, "  ◦ ");
+  replaceRange(textarea, line.start, line.end, nextLine);
+}
+
+function outdentBulletLine(textarea) {
+  const line = currentLine(textarea);
+  const nextLine = line.text.replace(/^\s*◦\s/, "• ");
+  replaceRange(textarea, line.start, line.end, nextLine);
+}
+
+function handleBulletEnter(event) {
+  const textarea = event.target;
+  const line = currentLine(textarea);
+  const marker = line.text.match(/^(\s*[•◦]\s)/)?.[1] ?? "• ";
+  const content = line.text.replace(/^\s*[•◦]\s/, "").trim();
+
+  event.preventDefault();
+  if (!content) {
+    replaceRange(textarea, line.start, line.end, "");
+  } else {
+    replaceSelection(textarea, `\n${marker}`);
+  }
+  textarea.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
+function currentLine(textarea) {
+  const value = textarea.value;
+  const start = value.lastIndexOf("\n", textarea.selectionStart - 1) + 1;
+  const nextBreak = value.indexOf("\n", textarea.selectionStart);
+  const end = nextBreak === -1 ? value.length : nextBreak;
+  return { start, end, text: value.slice(start, end) };
+}
+
+function replaceSelection(textarea, text) {
+  replaceRange(textarea, textarea.selectionStart, textarea.selectionEnd, text);
+}
+
+function replaceRange(textarea, start, end, text) {
+  const before = textarea.value.slice(0, start);
+  const after = textarea.value.slice(end);
+  textarea.value = `${before}${text}${after}`;
+  textarea.selectionStart = start + text.length;
+  textarea.selectionEnd = start + text.length;
+}
+
+function formatBulletsForExport(text) {
+  return String(text ?? "")
+    .split("\n")
+    .map((line) => line.replace(/^(\s*)\*\s+/, "$1• "))
+    .join("\n");
 }
 
 function ensurePdfSpace(pdf, y, neededHeight) {

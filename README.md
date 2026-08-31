@@ -10,6 +10,7 @@
 - Title text is white, 80 pt, centered at the top.
 - English text is white, 44 pt, on the left.
 - Spanish text is white, 44 pt, on the right.
+- Bullet and sub-bullet characters entered in the text fields are preserved.
 
 ### PDF
 
@@ -19,3 +20,4 @@
 - English text appears under each slide label/title.
 - All user-provided PDF text is black.
 - Spanish text is not included.
+- Bullet and sub-bullet characters entered in English text are preserved.
