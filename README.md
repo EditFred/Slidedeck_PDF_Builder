@@ -1,4 +1,4 @@
-# ProPresenter Slide Builder
+# Slidedeck PDF Builder
 
 ## Export Format
 
