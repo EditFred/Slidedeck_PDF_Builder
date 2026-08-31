@@ -234,9 +234,8 @@ async function exportPdf(language) {
       pdf.setTextColor(...hexToRgb(BLACK));
       pdf.setFont("helvetica", "normal");
       pdf.setFontSize(12);
-      const lines = pdf.splitTextToSize(formatBulletsForExport(slide[language]) || " ", maxWidth);
-      pdf.text(lines, marginX, y);
-      y += lines.length * 0.2 + 0.38;
+      y = drawPdfTextBlock(pdf, formatBulletsForExport(slide[language]) || " ", marginX, y, maxWidth);
+      y += 0.38;
     });
 
     const suffix = language === "spanish" ? "-ESP" : "";
@@ -248,6 +247,40 @@ async function exportPdf(language) {
 
 function hexToRgb(hex) {
   return [0, 2, 4].map((start) => parseInt(hex.slice(start, start + 2), 16));
+}
+
+function drawPdfTextBlock(pdf, text, x, y, maxWidth) {
+  const lineHeight = 0.2;
+  const bulletGap = 0.18;
+
+  String(text)
+    .split("\n")
+    .forEach((rawLine) => {
+      const bullet = rawLine.match(/^(\s*)([•◦])\s+(.*)$/);
+      const indentLevel = bullet ? Math.min(Math.floor(bullet[1].length / 2), 1) : 0;
+      const marker = bullet?.[2];
+      const content = bullet ? bullet[3] : rawLine;
+      const textX = bullet ? x + indentLevel * 0.35 + bulletGap : x;
+      const availableWidth = bullet ? maxWidth - indentLevel * 0.35 - bulletGap : maxWidth;
+      const lines = pdf.splitTextToSize(content || " ", availableWidth);
+
+      lines.forEach((line, lineIndex) => {
+        y = ensurePdfSpace(pdf, y, lineHeight);
+
+        if (marker && lineIndex === 0) {
+          const bulletX = x + indentLevel * 0.35 + 0.04;
+          const bulletY = y - 0.035;
+          pdf.setFillColor(...hexToRgb(BLACK));
+          pdf.circle(bulletX, bulletY, marker === "◦" ? 0.025 : 0.035, "F");
+        }
+
+        pdf.setTextColor(...hexToRgb(BLACK));
+        pdf.text(line, textX, y);
+        y += lineHeight;
+      });
+    });
+
+  return y;
 }
 
 function handleTextAreaKeydown(event) {
