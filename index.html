@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ProPresenter Slide Builder</title>
+    <meta
+      name="description"
+      content="A simple slide data-entry page that exports white-text PowerPoint and PDF slides."
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js" defer></script>
+    <script src="./app.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="actions">
+        <button id="exportPdfBtn" type="button">Export PDF</button>
+        <button id="exportPptxBtn" class="primary" type="button">Export PPTX</button>
+      </div>
+    </header>
+
+    <main>
+      <label class="deck-title">
+        Main title
+        <input id="deckTitle" type="text" autocomplete="off" placeholder="Title here" />
+      </label>
+      <div class="slides-heading">
+        <h1>Slides</h1>
+        <span id="slideCount">0</span>
+      </div>
+      <section id="slidesForm" class="slides-form" aria-label="Slides"></section>
+      <button id="addSlideBtn" class="add-slide-bottom" type="button">Add Slide</button>
+    </main>
+  </body>
+</html>
