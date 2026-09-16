@@ -29,6 +29,7 @@ function bindElements() {
     "deckTitle",
     "slideCount",
     "slidesForm",
+    "reorderStatus",
     "addSlideBtn",
     "exportPdfBtn",
     "exportEspPdfBtn",
@@ -73,6 +74,25 @@ function updateSlide(id, patch) {
   Object.assign(slide, patch);
 }
 
+function moveSlide(id, direction) {
+  const index = deckState.slides.findIndex((slide) => slide.id === id);
+  const nextIndex = index + direction;
+  if (index === -1 || nextIndex < 0 || nextIndex >= deckState.slides.length) return;
+
+  const [slide] = deckState.slides.splice(index, 1);
+  deckState.slides.splice(nextIndex, 0, slide);
+  render();
+
+  const card = els.slidesForm.children[nextIndex];
+  const preferredButton = card.querySelector(direction === -1 ? ".move-up" : ".move-down");
+  const focusTarget = preferredButton.disabled
+    ? card.querySelector(direction === -1 ? ".move-down" : ".move-up")
+    : preferredButton;
+  focusTarget.focus({ preventScroll: true });
+  card.scrollIntoView({ block: "nearest" });
+  els.reorderStatus.textContent = `Slide ${index + 1} moved to position ${nextIndex + 1} of ${deckState.slides.length}.`;
+}
+
 function render() {
   els.deckTitle.value = deckState.title;
   els.slideCount.textContent = `${deckState.slides.length} slide${deckState.slides.length === 1 ? "" : "s"}`;
@@ -84,7 +104,11 @@ function render() {
     card.innerHTML = `
       <div class="slide-card-header">
         <div class="slide-number">Slide ${index + 1}</div>
-        <button class="danger" type="button" ${deckState.slides.length === 1 ? "disabled" : ""}>Delete</button>
+        <div class="slide-controls">
+          <button class="move-up" type="button" aria-label="Move slide ${index + 1} up" ${index === 0 ? "disabled" : ""}>↑ Up</button>
+          <button class="move-down" type="button" aria-label="Move slide ${index + 1} down" ${index === deckState.slides.length - 1 ? "disabled" : ""}>↓ Down</button>
+          <button class="danger" type="button" ${deckState.slides.length === 1 ? "disabled" : ""}>Delete</button>
+        </div>
       </div>
       <label>
         Title
@@ -108,6 +132,8 @@ function render() {
       </div>
     `;
 
+    card.querySelector(".move-up").addEventListener("click", () => moveSlide(slide.id, -1));
+    card.querySelector(".move-down").addEventListener("click", () => moveSlide(slide.id, 1));
     card.querySelector(".danger").addEventListener("click", () => deleteSlide(slide.id));
     card.querySelector(".title-input").addEventListener("input", (event) => {
       updateSlide(slide.id, { titleOverride: event.target.value });

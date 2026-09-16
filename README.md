@@ -1,5 +1,12 @@
 # Slidedeck PDF Builder
 
+## Reorder Slides
+
+- Use the Up and Down buttons in a slide's header to move it one position.
+- The title, English text, and Spanish text move together, and slide numbers update automatically.
+- PDF, ESP PDF, and PPTX exports use the displayed slide order.
+- Buttons support keyboard navigation and are disabled at the first and last positions as appropriate.
+
 ## Export Format
 
 ### PPTX
